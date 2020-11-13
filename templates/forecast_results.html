@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {% block content %}
+
+<section>
+	<h1>ForeCast Weather in {{ city }}</h1>
+	<table style="text-align: right">
+		<tr>
+			<th>Date</th>
+			<th>Temperature (°{{ units_letter }})</th>
+			<th>Description</th>
+			<th>Humidity (%)</th>
+			<th>Sunrise</th>
+			<th>Sunset</th>
+		</tr>
+		{% for entry in daily_forecast %}
+		<tr>
+			{% for data in entry %}
+			<td>{{ data }}</td>
+			{% endfor %}
+		</tr>
+		{% endfor %}
+	</table>
+</section>
+{% endblock %}

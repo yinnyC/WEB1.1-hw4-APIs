@@ -1,13 +1,9 @@
 {% extends 'base.html' %} {% block content %}
 
 <section class="weather-form">
-	{# TODO: Replace the hard-coded city and date below with data from the server.
-	#}
 	<h1>Weather in {{ city }}</h1>
-	<p>on {{ weekday }}, {{ date }}</p>
+	<p>on {{ weekday }}, {{ formated_date }}</p>
 
-	{# TODO: Add the temperature, description, and min & max temperature below.
-	Replace 'F' with the appropriate units. #}
 	<ul>
 		<li>Description: {{ description }}</li>
 		<li>Temperature: {{ temp }}° {{ units_letter }}</li>

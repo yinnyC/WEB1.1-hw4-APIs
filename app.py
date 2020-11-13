@@ -38,11 +38,26 @@ app.jinja_loader = my_loader
 
 pp = PrettyPrinter(indent=4)
 
-weekDays = ("Monday", "Tuesday", "Wednesday",
-            "Thursday", "Friday", "Saturday", "Sunday")
 ################################################################################
 # ROUTES
 ################################################################################
+
+
+def getWeekDay(date):
+    """ This function will return a weekday """
+    weekDays = ("Monday", "Tuesday", "Wednesday",
+                "Thursday", "Friday", "Saturday", "Sunday")
+    return weekDays[date.weekday()]
+
+
+def formatDate(dateObj):
+    """ This function will return a formatted date """
+    return dateObj.strftime("%B %d, %Y")
+
+
+def formatTime(timeObj):
+    """ This function will return a formatted time """
+    return timeObj.strftime("%H:%M:%S")
 
 
 @app.route('/')
@@ -78,15 +93,15 @@ def results():
     # pp.pprint(result_json)
 
     context = {
-        'date': datetime.now().strftime("%B %d, %Y"),
-        'weekday': weekDays[datetime.now().weekday()],
+        'date': formatDate(datetime.now()),
+        'weekday': getWeekDay(datetime.now()),
         'city': result_json['name'],
         'description': result_json['weather'][0]['description'],
         'temp': result_json['main']['temp'],
         'humidity': result_json['main']['humidity'],
         'wind_speed': result_json['wind']['speed'],
-        'sunrise': datetime.fromtimestamp(result_json['sys']['sunrise']).strftime("%H:%M:%S"),
-        'sunset': datetime.fromtimestamp(result_json['sys']['sunset']).strftime("%H:%M:%S"),
+        'sunrise': formatTime(datetime.fromtimestamp(result_json['sys']['sunrise'])),
+        'sunset': formatTime(datetime.fromtimestamp(result_json['sys']['sunset'])),
         'units_letter': get_letter_for_units(units)
     }
 
@@ -143,8 +158,8 @@ def historical_results():
     context = {
         'city': city,
         'date': date_obj,
-        'formated_date': date_obj.strftime("%B %d, %Y"),
-        'weekday': weekDays[date_obj.weekday()],
+        'formated_date': formatDate(date_obj),
+        'weekday': getWeekDay(date_obj),
         'lat': latitude,
         'lon': longitude,
         'units': units,
@@ -156,6 +171,58 @@ def historical_results():
     }
 
     return render_template('historical_results.html', **context)
+
+
+def extractDailyForecastData(rawData):
+    """ This function clean the DailyForecastData and reurn an organized data"""
+    organizedList = []
+    for entry in rawData:
+        # organized_entry = {'date': formatDate(entry['dt']),
+        #                    'temp': entry['temp']['day'],
+        #                    'description': entry['weather']['description'],
+        #                    'humidity': entry['humidity'],
+        #                    'sunrise': formatTime(entry['sunrise']),
+        #                    'sunset': formatTime(entry['sunset'])
+        #                    }
+        organized_entry = [formatDate(datetime.fromtimestamp(entry['dt'])),
+                           entry['temp']['day'],
+                           entry['weather'][0]['description'],
+                           entry['humidity'],
+                           formatTime(datetime.fromtimestamp(
+                               entry['sunrise'])),
+                           formatTime(datetime.fromtimestamp(entry['sunset']))
+                           ]
+        organizedList.append(organized_entry)
+    return organizedList
+
+
+@app.route('/forecast_results')
+def forecast_results():
+    """Displays forecast weather for the next 7 days."""
+    city = request.args.get('city')
+    units = request.args.get('units')
+    latitude, longitude = get_lat_lon(city)
+    url = 'https://api.openweathermap.org/data/2.5/onecall'
+    params = {
+        'appid': API_KEY,
+        'units': units,
+        'lat': latitude,
+        'lon': longitude,
+        'exclude': 'minutely,hourly',
+    }
+    result_json = requests.get(url, params=params).json()
+
+    # Uncomment the line below to see the results of the API call!
+    pp.pprint(result_json)
+
+    daily_forecast = extractDailyForecastData(result_json['daily'])
+
+    context = {
+        'city': city,
+        'units_letter': get_letter_for_units(units),
+        'daily_forecast': daily_forecast
+    }
+    return render_template('forecast_results.html', **context)
 
 
 ################################################################################
