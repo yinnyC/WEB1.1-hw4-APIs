@@ -148,10 +148,6 @@ def historical_results():
     }
 
     result_json = requests.get(url, params=params).json()
-
-    # Uncomment the line below to see the results of the API call!
-    # pp.pprint(result_json)
-
     result_current = result_json['current']
     result_hourly = result_json['hourly']
 
@@ -177,13 +173,6 @@ def extractDailyForecastData(rawData):
     """ This function clean the DailyForecastData and reurn an organized data"""
     organizedList = []
     for entry in rawData:
-        # organized_entry = {'date': formatDate(entry['dt']),
-        #                    'temp': entry['temp']['day'],
-        #                    'description': entry['weather']['description'],
-        #                    'humidity': entry['humidity'],
-        #                    'sunrise': formatTime(entry['sunrise']),
-        #                    'sunset': formatTime(entry['sunset'])
-        #                    }
         organized_entry = [formatDate(datetime.fromtimestamp(entry['dt'])),
                            entry['temp']['day'],
                            entry['weather'][0]['description'],
